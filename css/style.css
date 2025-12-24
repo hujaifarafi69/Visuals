@@ -1,0 +1,112 @@
+/* ===== GLOBAL ===== */
+body {
+    background-color: #111;
+    color: #eee;
+    font-family: sans-serif;
+    margin: 0;
+}
+
+/* ===== LAYOUT ===== */
+.page {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 220px;
+    background: #1a1a1a;
+    padding: 10px;
+    border-right: 2px solid #333;
+}
+
+.content {
+    flex: 1;
+    padding: 20px;
+}
+
+/* ===== BUTTONS ===== */
+.menu-button {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px;
+    background: #333;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+
+.menu-button:hover {
+    background: #555;
+}
+
+/* ===== CONTROLS ===== */
+.controls {
+    margin-bottom: 15px;
+}
+
+.controls input {
+    width: 120px;
+    padding: 5px;
+}
+
+.controls button {
+    padding: 6px 10px;
+    margin-left: 5px;
+}
+
+/* ===== VISUAL AREA ===== */
+.visual-area {
+    border: 2px dashed #444;
+    min-height: 200px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 10px;
+}
+
+/* ===== BLOCKS ===== */
+.block {
+    width: 50px;
+    background: #22c55e;
+    color: black;
+    text-align: center;
+    border-radius: 4px;
+}
+
+/* Stack */
+.stack .block {
+    background: #f97316;
+}
+
+/* Queue */
+.queue .block {
+    background: #38bdf8;
+}
+
+/* Dropdown in sidebar */
+.menu-select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.menu-select:hover {
+    background: #555;
+}
+
+.venn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+canvas {
+    border: 1px solid #ccc;
+}

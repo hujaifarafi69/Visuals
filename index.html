@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Visuals</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="page">
+
+    <!-- ========== SIDEBAR ========== -->
+    <div class="sidebar">
+        <a href="index.html">
+            <h2 style="color:white; text-align:center; margin-bottom:15px;">
+                Visuals
+            </h2>
+        </a>
+
+        <!-- Venn Diagram Dropdown -->
+        <select id="vennSelect" class="menu-select">
+            <option value="" selected disabled hidden>Venn Diagrams</option>
+            <option value="venn1">1 Set</option>
+            <option value="venn2">2 Set</option>
+            <option value="venn3">3 Set</option>
+        </select>
+        
+        <!-- Data Structure Dropdown -->
+        <select id="dsSelectDS" class="menu-select">
+            <option value="" selected disabled hidden>Data Structure</option>
+            <option value="array">Array</option>
+            <option value="stack">Stack</option>
+            <option value="queue">Queue</option>
+        </select>
+
+        <!-- Device Dropdown -->
+        <select id="deviceSelect" class="menu-select">
+            <option value="" selected disabled hidden>Device</option>
+            <option value="cpu">CPU</option>
+            <option value="memory">Memory</option>
+            <option value="storage">Storage</option>
+        </select>
+
+    </div>
+
+    <!-- ========== CONTENT AREA ========== -->
+    <div class="content" id="content">
+        <h2>Welcome!</h2>
+        <p>Select a Topic from the sidebar dropdowns to see it visually.</p>
+    </div>
+
+</div>
+
+<!-- Router -->
+<script defer src="js/router.js"></script>
+
+<!-- Data Structure -->
+<script defer src="Data_Structure/js/main.js"></script>
+<script defer src="Data_Structure/js/data-structure/array.js"></script>
+<script defer src="Data_Structure/js/data-structure/stack.js"></script>
+<script defer src="Data_Structure/js/data-structure/queue.js"></script>
+
+<!-- Venn Diagrams -->
+<script defer src="Ven_Diagrams/js/venn/venn-core.js"></script>
+<script defer src="Ven_Diagrams/js/venn/venn1.js"></script>
+<script defer src="Ven_Diagrams/js/venn/venn2.js"></script>
+<script defer src="Ven_Diagrams/js/venn/venn3.js"></script>
+<script defer src="Ven_Diagrams/js/venn/visual-router.js"></script>
+
+
+
+</body>
+</html>
