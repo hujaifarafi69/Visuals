@@ -22,3 +22,25 @@ function initVenn2() {
   canvas.height = canvas.clientHeight;
   drawVenn2("vennCanvas");
 }
+
+let isIntersection2 = true;
+
+function toggleMode2() {
+    isIntersection2 = !isIntersection2;
+
+    const btn = document.getElementById("modeToggle2");
+    if (!btn) return;
+
+    btn.textContent = isIntersection2 ? "∩" : "∪";
+
+    updateVenn2();
+}
+
+function updateVenn2() {
+    if (isIntersection2) {
+        drawIntersection2();
+    } else {
+        drawUnion2();
+    }
+}
+

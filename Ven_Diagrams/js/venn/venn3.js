@@ -27,3 +27,20 @@ function initVenn3() {
   canvas.height = canvas.clientHeight;
   drawVenn3("vennCanvas");
 }
+
+let modeAB = "intersection";
+let modeBC = "intersection";
+
+function toggleModeAB() {
+    modeAB = modeAB === "intersection" ? "union" : "intersection";
+    document.getElementById("modeToggleAB").textContent =
+        modeAB === "intersection" ? "∩" : "∪";
+    updateVenn3();
+}
+
+function toggleModeBC() {
+    modeBC = modeBC === "intersection" ? "union" : "intersection";
+    document.getElementById("modeToggleBC").textContent =
+        modeBC === "intersection" ? "∩" : "∪";
+    updateVenn3();
+}
