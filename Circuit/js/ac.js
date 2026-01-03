@@ -1,9 +1,12 @@
-// Canvas setup
-const workspace = document.getElementById('workspace');
-const wireCanvas = document.getElementById('wireCanvas');
-const graphCanvas = document.getElementById('graphCanvas');
-const wctx = wireCanvas.getContext('2d');
-const gctx = graphCanvas.getContext('2d');
+// Circuit/js/ac.js
+function initAC() {
+    // All your drag & drop, toolbar setup, wiring, canvas resizing code here
+    const workspace = document.getElementById('workspace');
+    const wireCanvas = document.getElementById('wireCanvas');
+    const graphCanvas = document.getElementById('graphCanvas');
+    const wctx = wireCanvas.getContext('2d');
+    const gctx = graphCanvas.getContext('2d');
+
 
 // Circuit state
 let components = [];
@@ -1064,4 +1067,5 @@ function showMessage(text) {
     gctx.font = '14px Arial';
     gctx.textAlign = 'center';
     gctx.fillText(text, graphCanvas.width / 2, graphCanvas.height / 2);
+}
 }
