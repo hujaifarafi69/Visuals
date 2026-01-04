@@ -23,21 +23,61 @@ const RESISTOR_VALUE = 1000;
 const DIODE_FORWARD_VOLTAGE = 0.7;
 
 // Initialize
-resizeCanvases();
+requestAnimationFrame(() => {
+    resizeCanvases();
+});
 setupToolbar();
 setupWorkspace();
 
 // ==================== CANVAS RESIZE ====================
 function resizeCanvases() {
-    wireCanvas.width = workspace.clientWidth;
-    wireCanvas.height = workspace.clientHeight;
-    graphCanvas.width = graphCanvas.parentElement.clientWidth;
-    graphCanvas.height = graphCanvas.parentElement.clientHeight;
+    const dpr = window.devicePixelRatio || 1;
+
+    // Sketch / workspace canvas
+    const wRect = workspace.getBoundingClientRect();
+    wireCanvas.width  = wRect.width * dpr;
+    wireCanvas.height = wRect.height * dpr;
+    wireCanvas.style.width  = `${wRect.width}px`;
+    wireCanvas.style.height = `${wRect.height}px`;
+    wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // Graph canvas
+    const gRect = graphCanvas.getBoundingClientRect();
+    graphCanvas.width  = gRect.width * dpr;
+    graphCanvas.height = gRect.height * dpr;
+    graphCanvas.style.width  = `${gRect.width}px`;
+    graphCanvas.style.height = `${gRect.height}px`;
+    gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     drawWires();
     updateGraph();
 }
 
-window.addEventListener('resize', resizeCanvases);
+
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        requestAnimationFrame(resizeCanvases);
+    }, 50);
+});
+
+
+function resizeGraphCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+
+    const gContainer = graphCanvas.parentElement;
+    const gRect = gContainer.getBoundingClientRect();
+
+    // Canvas fills container entirely (ignore padding for layout)
+    graphCanvas.width  = gRect.width * dpr;
+    graphCanvas.height = gRect.height * dpr;
+    graphCanvas.style.width  = gRect.width + 'px';
+    graphCanvas.style.height = gRect.height + 'px';
+    gctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    updateGraph();
+}
 
 // ==================== TOOLBAR ====================
 function setupToolbar() {
@@ -267,22 +307,19 @@ function makeDraggable(comp) {
         comp.classList.add('dragging');
         
         function onMouseMove(e) {
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-            
-            // Calculate new position with bounds
-            const maxLeft = workspace.clientWidth - comp.offsetWidth;
-            const maxTop = workspace.clientHeight - comp.offsetHeight;
-            
-            let newLeft = startLeft + dx;
-            let newTop = startTop + dy;
-            
-            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
-            newTop = Math.max(0, Math.min(newTop, maxTop));
-            
-            comp.style.left = `${newLeft}px`;
-            comp.style.top = `${newTop}px`;
-            
+          const dx = e.clientX - startX;
+const dy = e.clientY - startY;
+
+let newLeft = startLeft + dx;
+let newTop  = startTop  + dy;
+
+// Clamp within workspace bounds
+newLeft = Math.max(0, Math.min(newLeft, workspace.clientWidth - comp.offsetWidth));
+newTop  = Math.max(0, Math.min(newTop, workspace.clientHeight - comp.offsetHeight));
+
+comp.style.left = `${newLeft}px`;
+comp.style.top  = `${newTop}px`;
+
             drawWires();
             updateNodes();
         }
@@ -495,6 +532,21 @@ function isCircuitComplete() {
     
     return false;
 }
+function applyResistorDivider(voltage) {
+    const connectedResistors = components.filter(c =>
+        c.dataset.type === 'resistor' &&
+        [...c.querySelectorAll('.pin')].some(
+            p => parseInt(p.dataset.nodeId) !== -1
+        )
+    ).length;
+
+    if (connectedResistors === 0) return voltage;
+
+    const totalSeriesResistance = connectedResistors * RESISTOR_VALUE;
+    const loadResistance = 1000;
+
+    return voltage * (loadResistance / (totalSeriesResistance + loadResistance));
+}
 
 function simulateOutputVoltage(time) {
     if (!isCircuitComplete()) return null;
@@ -561,15 +613,7 @@ function simulateOutputVoltage(time) {
     
     return outputVoltage;
 }
-function applyResistorDivider(voltage, resistorCount) {
-    if (resistorCount === 0) return voltage;
-    
-    const totalResistance = resistorCount * RESISTOR_VALUE;
-    const loadResistance = 1000; // Assume 1kΩ load
-    const dividerRatio = loadResistance / (totalResistance + loadResistance);
-    
-    return voltage * dividerRatio;
-}
+
 
 function getComponentsInNode(nodeId) {
     if (nodeId === -1) return [];
@@ -598,109 +642,48 @@ function applyResistorEffect(voltage, resistorCount) {
     return voltage * dividerRatio;
 }
 
-function applyResistorDivider(voltage) {
-    const resistors = components.filter(c => c.dataset.type === 'resistor');
-    if (resistors.length === 0) return voltage;
-    
-    // Count connected resistors
-    const connectedResistors = resistors.filter(resistor => {
-        const pins = [...resistor.querySelectorAll('.pin')];
-        return pins.some(pin => parseInt(pin.dataset.nodeId) !== -1);
-    }).length;
-    
-    if (connectedResistors === 0) return voltage;
-    
-    const totalResistance = connectedResistors * RESISTOR_VALUE;
-    const loadResistance = 1000; // Assume 1kΩ load
-    const dividerRatio = loadResistance / (totalResistance + loadResistance);
-    
-    return voltage * dividerRatio;
-}
+
 function analyzeDiodeConfiguration() {
     const source = components.find(c => c.dataset.type === 'source');
     if (!source) return null;
-    
+
     const sourcePins = [...source.querySelectorAll('.pin')];
-    const sourceRightPin = sourcePins.find(p => p.classList.contains('right')); // Positive
-    const sourceLeftPin = sourcePins.find(p => p.classList.contains('left'));   // Negative
-    
+    const sourceRightPin = sourcePins.find(p => p.classList.contains('right')); // +
+    const sourceLeftPin  = sourcePins.find(p => p.classList.contains('left'));  // -
+
     if (!sourceRightPin || !sourceLeftPin) return null;
-    
+
     const rightNodeId = parseInt(sourceRightPin.dataset.nodeId);
-    const leftNodeId = parseInt(sourceLeftPin.dataset.nodeId);
-    
+    const leftNodeId  = parseInt(sourceLeftPin.dataset.nodeId);
+
     if (rightNodeId === -1 || leftNodeId === -1) return null;
-    
-    // Find all diodes connected to the positive side
-    const rightNodePins = nodes.get(rightNodeId) || new Set();
-    const diodes = [];
-    
-    rightNodePins.forEach(pin => {
-        const comp = pin.closest('.component');
-        if (comp && comp.dataset.type === 'diode') {
-            diodes.push({
-                component: comp,
-                connectedPin: pin,
-                otherPin: [...comp.querySelectorAll('.pin')].find(p => p !== pin)
-            });
-        }
-    });
-    
-    if (diodes.length === 0) return null;
-    
-    // Take the first diode (for now)
-    const diode = diodes[0];
-    const diodeComp = diode.component;
-    const orientation = diodeComp.dataset.orientation || 'forward';
-    const connectedPin = diode.connectedPin;
-    const otherPin = diode.otherPin;
-    
-    // Determine if connected pin is anode or cathode
-    let connectedToAnode = false;
-    
-    if (orientation === 'forward') {
-        // Forward: left is anode, right is cathode
-        connectedToAnode = connectedPin.classList.contains('left');
-    } else {
-        // Reverse: left is cathode, right is anode
-        connectedToAnode = connectedPin.classList.contains('right');
-    }
-    
-    // Check if other pin is connected to something
-    const otherNodeId = parseInt(otherPin.dataset.nodeId);
-    let hasCompletePath = false;
-    
-    if (otherNodeId !== -1) {
-        // Check if this connects to the negative terminal
-        if (otherNodeId === leftNodeId) {
-            hasCompletePath = true;
-        } else {
-            // Check through connected components
-            const otherNodePins = nodes.get(otherNodeId) || new Set();
-            otherNodePins.forEach(pin => {
-                const comp = pin.closest('.component');
-                if (comp && comp.dataset.type === 'resistor') {
-                    // Check resistor's other pin
-                    const resistorOtherPin = [...comp.querySelectorAll('.pin')].find(p => p !== pin);
-                    if (resistorOtherPin) {
-                        const resistorOtherNodeId = parseInt(resistorOtherPin.dataset.nodeId);
-                        if (resistorOtherNodeId === leftNodeId) {
-                            hasCompletePath = true;
-                        }
-                    }
-                }
-            });
-        }
-    }
-    
+
+    // 🔑 PATH-BASED analysis (order independent)
+    const path = traceCircuitPath();
+    if (!path) return null;
+
+    // Find first diode in the series path
+    const diodeSegment = path.find(seg =>
+        seg.component.dataset.type === 'diode'
+    );
+
+    if (!diodeSegment) return null;
+
+    const diodeComp = diodeSegment.component;
+    const connectedPin = diodeSegment.fromPin;
+    const otherPin = diodeSegment.toPin;
+
+    // ✅ Correct anode/cathode detection (NO left/right guessing)
+    const connectedToAnode = connectedPin.dataset.diodeEnd === 'anode';
+
     return {
         diode: diodeComp,
-        orientation: orientation,
         connectedToAnode: connectedToAnode,
-        hasCompletePath: hasCompletePath,
-        otherPinConnected: otherNodeId !== -1
+        otherPinConnected: parseInt(otherPin.dataset.nodeId) !== -1,
+        hasCompletePath: true // guaranteed by traceCircuitPath
     };
 }
+
 // Add this function to analyze the circuit
 function analyzeCircuit() {
     const source = components.find(c => c.dataset.type === 'source');
@@ -763,21 +746,6 @@ function analyzeCircuit() {
     };
 }
 
-function applyResistorDivider(voltage) {
-    // Count connected resistors
-    const connectedResistors = components.filter(c => 
-        c.dataset.type === 'resistor' && 
-        [...c.querySelectorAll('.pin')].some(p => parseInt(p.dataset.nodeId) !== -1)
-    ).length;
-    
-    if (connectedResistors === 0) return voltage;
-    
-    const totalSeriesResistance = connectedResistors * RESISTOR_VALUE;
-    const loadResistance = 1000; // Assume 1kΩ load
-    const dividerRatio = loadResistance / (totalSeriesResistance + loadResistance);
-    
-    return voltage * dividerRatio;
-}
 
 // ==================== GRAPH ====================
 function updateGraph() {
@@ -1013,15 +981,15 @@ function drawGrid() {
 
 function drawWave(color, fn, lineWidth, label) {
     gctx.beginPath();
+    gctx.strokeStyle = color;
+    gctx.lineWidth = lineWidth;
+
     let hasValidPoints = false;
-    let lastX = 0;
-    let lastY = 0;
-    
+
     for (let x = 0; x < graphCanvas.width; x++) {
         const yValue = fn(x);
-        
-        if (yValue === null || yValue === undefined || isNaN(yValue)) {
-            // Break the line if we have an invalid point
+
+        if (yValue == null || isNaN(yValue)) {
             if (hasValidPoints) {
                 gctx.stroke();
                 gctx.beginPath();
@@ -1029,38 +997,30 @@ function drawWave(color, fn, lineWidth, label) {
             }
             continue;
         }
-        
-        // Convert to graph coordinates
-        // Center is at graphCanvas.height/2
-        // Full scale is ±AC_AMPLITUDE, displayed as ±40 pixels
+
         const y = graphCanvas.height / 2 - yValue * 40;
-        
+
         if (!hasValidPoints) {
             gctx.moveTo(x, y);
             hasValidPoints = true;
         } else {
-            // Draw line from last point
             gctx.lineTo(x, y);
         }
-        
-        lastX = x;
-        lastY = y;
     }
-    
+
     if (hasValidPoints) {
-        gctx.strokeStyle = color;
-        gctx.lineWidth = lineWidth;
         gctx.stroke();
-        
-        // Draw label
-        gctx.fillStyle = color;
-        gctx.font = '12px Arial';
-        gctx.textAlign = 'left';
-        gctx.fillText(label, 10, graphCanvas.height - 10);
     }
-    
+
+    // Draw label (separate from path drawing)
+    gctx.fillStyle = color;
+    gctx.font = '12px Arial';
+    gctx.textAlign = 'left';
+    gctx.fillText(label, 10, graphCanvas.height - 10);
+
     return hasValidPoints;
 }
+
 
 function showMessage(text) {
     gctx.fillStyle = 'rgba(255, 100, 100, 0.8)';
