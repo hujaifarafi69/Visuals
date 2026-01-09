@@ -168,3 +168,12 @@ canvas {
   margin: 0 6px;
   color: #444;
 }
+
+.content a {
+    color: #4da3ff;
+    text-decoration: none;
+}
+
+.content a:hover {
+    text-decoration: underline;
+}
