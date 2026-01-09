@@ -8,6 +8,7 @@ body {
 
 /* ===== LAYOUT ===== */
 .page {
+    margin-top: 40px;
     display: flex;
     height: 100vh;
 }
@@ -111,3 +112,59 @@ canvas {
     border: 1px solid #ccc;
 }
 
+/* ========== FOOTER ========== */
+.footer {
+    height: 40px;
+    background: #0f0f0f;
+    color: #aaa;
+    font-size: 13px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 20px;
+    border-top: 1px solid #222;
+
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+/* ========== HEADER ========== */
+.header {
+  height: 40px;
+  background: #0f0f0f;
+  color: #aaa;
+  font-size: 13px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 20px;
+  border-bottom: 1px solid #222;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+}
+
+.header a {
+  color: #aaa;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.header a:hover {
+  color: #fff;
+}
+
+.header span {
+  margin: 0 6px;
+  color: #444;
+}
